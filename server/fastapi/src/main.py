@@ -20,7 +20,6 @@ Answer the following question:
 
 {question}
 
-
 Answer here:
 """
 )
