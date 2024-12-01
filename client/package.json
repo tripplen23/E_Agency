@@ -3,10 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
+    "dev:turbo": "next dev --turbo",
     "build": "next build",
+    "build:turbo": "turbo build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint . --max-warnings 0",
+    "ui:add": "pnpm dlx shadcn-ui@latest add",
+    "check-types": "tsc --noEmit"
   },
   "dependencies": {
     "@hookform/resolvers": "3.9.1",

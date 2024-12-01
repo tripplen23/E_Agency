@@ -1,4 +1,17 @@
 services:
+  fastapi-server:
+    build:
+      context: ./server/fastapi
+      dockerfile: Dockerfile
+    image: fastapi-server
+    ports:
+      - "8000:8000"
+    networks:
+      - my-net
+    container_name: fastapi-server
+    volumes:
+      - ./server/fastapi:/app
+
   ollama-server:
     build:
       context: ./ollama
@@ -9,7 +22,6 @@ services:
     networks:
       - my-net
     container_name: ollama-server
-
 
 networks:
   my-net:

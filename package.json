@@ -1,0 +1,14 @@
+{
+  "name": "next-fast-turbo",
+  "private": true,
+  "scripts": {
+    "dev": "docker compose up && turbo run dev && docker compose down"
+  },
+  "devDependencies": {
+    "turbo": "2.3.3"
+  },
+  "packageManager": "pnpm@8.9.0",
+  "engines": {
+    "node": "20.12.0"
+  }
+}
