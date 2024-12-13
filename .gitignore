@@ -3,3 +3,4 @@ env
 db.sqlite3
 .turbo
 node_modules
+.cursorrules

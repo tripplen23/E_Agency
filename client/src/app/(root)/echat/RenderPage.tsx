@@ -1,8 +1,8 @@
 "use client";
 import React, { useState } from "react";
-import ShowChat from "@/components/ecode/ShowChat";
-import InputChat from "@/components/ecode/InputChat";
-import MessChat from "@/components/ecode/MessChat";
+import ShowChat from "@/components/echat/ShowChat";
+import InputChat from "@/components/echat/InputChat";
+import MessChat from "@/components/echat/MessChat";
 
 const RenderPage = () => {
   const [mess, setMess] = useState<string[]>([]);

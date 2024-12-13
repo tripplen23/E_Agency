@@ -2,9 +2,13 @@
   "name": "next-fast-turbo",
   "private": true,
   "scripts": {
-    "dev": "docker compose up && turbo run dev && docker compose down"
+    "dev": "docker compose up -d --build && pnpm run watch",
+    "watch": "trap 'docker compose stop; kill-port 3000; exit 0' SIGINT; turbo run dev",
+    "clean": "rimraf --glob **/node_modules **/dist **/.next **/.turbo *.bak && pnpm store prune && pnpm install"
   },
   "devDependencies": {
+    "kill-port": "2.0.1",
+    "rimraf": "6.0.1",
     "turbo": "2.3.3"
   },
   "packageManager": "pnpm@8.9.0",
