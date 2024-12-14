@@ -1,16 +1,25 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import Sidebar from "@/components/Sidebar";
-import { Header } from "@/components/Header";
-
-const inter = Inter({ subsets: ["latin"] });
+//import Sidebar from "@/components/Sidebar";
+//import { Header } from "@/components/Header";
+import localFont from "next/font/local";
 
 export const metadata: Metadata = {
-  title: "AI Agency Dashboard",
+  title: "EAgency",
   description: "Your one-stop solution for AI services",
 };
+
+const geistSans = localFont({
+  src: "./fonts/GeistVF.woff",
+  variable: "--font-geist-sans",
+  weight: "100 900",
+});
+const geistMono = localFont({
+  src: "./fonts/GeistMonoVF.woff",
+  variable: "--font-geist-mono",
+  weight: "100 900",
+});
 
 export default function RootLayout({
   children,
@@ -19,7 +28,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -27,9 +38,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <div className="flex h-screen overflow-hidden">
-            <Sidebar />
+            {/* <Sidebar /> */}
             <div className="flex-1 flex flex-col">
-              <Header />
+              {/* <Header /> */}
               <main className="flex-1 overflow-y-auto bg-background">
                 {children}
               </main>
