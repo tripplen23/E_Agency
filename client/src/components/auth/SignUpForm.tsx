@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useId, useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -15,9 +15,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { signup } from "@/lib/actions/auth-actions";
+import { redirect } from "next/navigation";
 
 const passwordValidationRegex = new RegExp(
-  "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})"
+  "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*_])(?=.{8,})"
 );
 
 const formSchema = z
@@ -53,7 +56,9 @@ const formSchema = z
   });
 
 const SignUpForm = ({ className }: { className?: string }) => {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+
+  const toastId = useId();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -65,10 +70,27 @@ const SignUpForm = ({ className }: { className?: string }) => {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    toast.loading("Signing up...", { id: toastId });
     setLoading(true);
 
-    console.log(values);
+    const formData = new FormData();
+    formData.append("fullName", values.fullName);
+    formData.append("email", values.email);
+    formData.append("password", values.password);
+
+    const { success, error } = await signup(formData);
+    if (!success) {
+      toast.error(String(error), { id: toastId });
+      setLoading(false);
+    } else {
+      toast.success(
+        "Signed up successfully! Please confirm your email address.",
+        { id: toastId }
+      );
+      setLoading(false);
+      redirect("/login");
+    }
   }
 
   return (

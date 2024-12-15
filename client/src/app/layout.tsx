@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 //import Sidebar from "@/components/Sidebar";
 //import { Header } from "@/components/Header";
 import localFont from "next/font/local";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: "EAgency",
@@ -43,6 +44,7 @@ export default function RootLayout({
               {/* <Header /> */}
               <main className="flex-1 overflow-y-auto bg-background">
                 {children}
+                <Toaster richColors />
               </main>
             </div>
           </div>
