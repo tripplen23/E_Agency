@@ -1,6 +1,12 @@
 "use client";
 
-import { ChevronRight, type LucideIcon } from "lucide-react";
+import {
+  BadgeCheck,
+  ChevronRight,
+  CreditCard,
+  ImagePlay,
+  ImagesIcon,
+} from "lucide-react";
 
 import {
   Collapsible,
@@ -17,30 +23,77 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
+import { Frame, Image, Settings2, SquareTerminal } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 
-export function NavMain({
-  items,
-}: {
-  items: {
-    title: string;
-    url: string;
-    icon?: LucideIcon;
-    isActive?: boolean;
-    items?: {
-      title: string;
-      url: string;
-    }[];
-  }[];
-}) {
+const navItems = [
+  {
+    title: "Dashboard",
+    icon: SquareTerminal,
+    items: [
+      {
+        title: "Overview",
+        url: "/dashboard",
+        icon: SquareTerminal,
+      },
+    ],
+  },
+  {
+    title: "Image Tools",
+    icon: Image,
+    items: [
+      { title: "Generate Image", url: "/image-generation", icon: ImagePlay },
+      { title: "Gallery", url: "/gallery", icon: ImagesIcon },
+    ],
+  },
+  {
+    title: "Models",
+    icon: Frame,
+    items: [
+      {
+        title: "My Models",
+        url: "/my-models",
+        icon: Frame,
+      },
+      {
+        title: "Model Training",
+        url: "/model-training",
+        icon: Frame,
+      },
+    ],
+  },
+  {
+    title: "Settings",
+    icon: Settings2,
+    items: [
+      {
+        title: "Account Settings",
+        url: "/account-settings",
+        icon: BadgeCheck,
+      },
+      {
+        title: "Billing",
+        url: "/billing",
+        icon: CreditCard,
+      },
+    ],
+  },
+];
+
+export function NavMain() {
+  const pathName = usePathname();
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
       <SidebarMenu>
-        {items.map((item) => (
+        {navItems.map((item) => (
           <Collapsible
             key={item.title}
             asChild
-            defaultOpen={item.isActive}
+            defaultOpen={false}
             className="group/collapsible"
           >
             <SidebarMenuItem>
@@ -54,13 +107,23 @@ export function NavMain({
               <CollapsibleContent>
                 <SidebarMenuSub>
                   {item.items?.map((subItem) => (
-                    <SidebarMenuSubItem key={subItem.title}>
-                      <SidebarMenuSubButton asChild>
-                        <a href={subItem.url}>
+                    <Link
+                      key={subItem.title}
+                      href={subItem.url}
+                      className={cn(
+                        "rounded-none",
+                        pathName === subItem.url
+                          ? "text-primary bg-primary/5"
+                          : "text-muted-foreground"
+                      )}
+                    >
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton>
+                          {subItem.icon && <subItem.icon />}
                           <span>{subItem.title}</span>
-                        </a>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    </Link>
                   ))}
                 </SidebarMenuSub>
               </CollapsibleContent>

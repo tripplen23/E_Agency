@@ -1,14 +1,5 @@
-"use client";
-
 import * as React from "react";
-import {
-  BookOpen,
-  Frame,
-  Image,
-  Settings2,
-  Sparkles,
-  SquareTerminal,
-} from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
 import {
@@ -19,101 +10,20 @@ import {
   SidebarMenuButton,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { createClient } from "@/lib/supabase/server";
+import { NavUser } from "./nav-user";
 
-// This is sample data.
-const data = [
-  {
-    title: "Dashboard",
-    url: "#",
-    icon: SquareTerminal,
-    items: [
-      {
-        title: "Overview",
-        url: "/dashboard",
-      },
-    ],
-  },
-  {
-    title: "Image Tools",
-    url: "#",
-    icon: Image,
-    items: [
-      { title: "Generate Image", url: "/image-generation" },
-      { title: "My Images", url: "/gallery" },
-    ],
-  },
-  {
-    title: "Playground",
-    url: "#",
-    icon: SquareTerminal,
-    isActive: true,
-    items: [
-      {
-        title: "History",
-        url: "#",
-      },
-      {
-        title: "Starred",
-        url: "#",
-      },
-      {
-        title: "Settings",
-        url: "#",
-      },
-    ],
-  },
-  {
-    title: "Models",
-    url: "#",
-    icon: Frame,
-    items: [
-      {
-        title: "My Models",
-        url: "/models",
-      },
-    ],
-  },
-  {
-    title: "Documentation",
-    url: "#",
-    icon: BookOpen,
-    items: [
-      {
-        title: "Introduction",
-        url: "#",
-      },
-      {
-        title: "Get Started",
-        url: "#",
-      },
-      {
-        title: "Tutorials",
-        url: "#",
-      },
-      {
-        title: "Changelog",
-        url: "#",
-      },
-    ],
-  },
-  {
-    title: "Settings",
-    url: "#",
-    icon: Settings2,
-    items: [
-      {
-        title: "General",
-        url: "/account-settings",
-      },
-      {
-        title: "Billing",
-        url: "/billing",
-      },
-    ],
-  },
-];
+export async function AppSidebar({
+  ...props
+}: React.ComponentProps<typeof Sidebar>) {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const user = {
+    name: data.user?.user_metadata.full_name,
+    email: data?.user?.email ?? "",
+  };
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -131,9 +41,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenuButton>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data} />
+        <NavMain />
       </SidebarContent>
-      <SidebarFooter>{/*<NavUser user={data.user} />*/}</SidebarFooter>
+      <SidebarFooter>
+        <NavUser user={user} />
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );
