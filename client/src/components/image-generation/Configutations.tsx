@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -29,7 +29,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
-import { generateImage } from "@/lib/actions/image-actions";
+import useGeneratedStore from "@/store/useGeneratedStore";
 
 export const ImageGenerationFormSchema = z.object({
   model: z.string({
@@ -62,7 +62,8 @@ export const ImageGenerationFormSchema = z.object({
 });
 
 const Configutations = () => {
-  // 1. Define your form.
+  const generateImage = useGeneratedStore((state) => state.generateImage);
+
   const form = useForm<z.infer<typeof ImageGenerationFormSchema>>({
     resolver: zodResolver(ImageGenerationFormSchema),
     defaultValues: {
@@ -77,9 +78,28 @@ const Configutations = () => {
     },
   });
 
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === "model") {
+        let newSteps;
+
+        if (value.model === "black-forest-labs/flux-schnell") {
+          newSteps = 4;
+        } else {
+          newSteps = 28;
+        }
+
+        if (newSteps !== undefined) {
+          form.setValue("num_inference_steps", newSteps);
+        }
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [form]);
+
   async function onSubmit(values: z.infer<typeof ImageGenerationFormSchema>) {
-    const { error, success, data } = await generateImage(values);
-    console.log(error, success, data);
+    await generateImage(values);
   }
 
   return (
@@ -264,7 +284,12 @@ const Configutations = () => {
                     <Slider
                       defaultValue={[field.value]}
                       min={1}
-                      max={50}
+                      max={
+                        form.getValues("model") ===
+                        "black-forest-labs/flux-schnell"
+                          ? 4
+                          : 50
+                      }
                       step={1}
                       onValueChange={(value) => field.onChange(value[0])}
                     />
