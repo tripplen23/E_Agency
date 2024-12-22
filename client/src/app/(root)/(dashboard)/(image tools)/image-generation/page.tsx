@@ -1,5 +1,5 @@
-import Configutations from "@/components/image-generation/Configutations";
-import GenerateImages from "@/components/image-generation/GenerateImages";
+import Configutations from "@/components/image-tools/image-generation/Configutations";
+import GenerateImages from "@/components/image-tools/image-generation/GenerateImages";
 import React from "react";
 
 const ImageGeneration = () => {

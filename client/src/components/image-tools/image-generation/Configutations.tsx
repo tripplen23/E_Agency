@@ -20,8 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Slider } from "../ui/slider";
-import { Textarea } from "../ui/textarea";
+import { Slider } from "../../ui/slider";
+import { Textarea } from "../../ui/textarea";
 import {
   Tooltip,
   TooltipContent,
