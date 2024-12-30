@@ -8,9 +8,10 @@ import {
 import { Tables } from "@datatypes.types";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { DownloadIcon, TrashIcon } from "lucide-react";
+import { DownloadIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import DeleteImage from "./DeleteImage";
 
 interface ImageDialogProps {
   image: { url: string | undefined } & Tables<"generated_images">;
@@ -18,6 +19,27 @@ interface ImageDialogProps {
 }
 
 const ImageDialog = ({ image, onClose }: ImageDialogProps) => {
+  const handleDownload = () => {
+    fetch(image.url || "")
+      .then((response) => response.blob())
+      .then((blob) => {
+        const url = window.URL.createObjectURL(new Blob([blob]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute(
+          "download",
+          `geneated-image-${Date.now()}.${image?.output_format}`
+        );
+
+        document.body.appendChild(link);
+        link.click();
+
+        // clean up
+        link.parentNode?.removeChild(link);
+      })
+      .catch((error) => console.log(error));
+  };
+
   return (
     <Sheet open={true} onOpenChange={onClose}>
       <SheetContent className="max-w-full sm:max-w-xl w-full">
@@ -33,13 +55,16 @@ const ImageDialog = ({ image, onClose }: ImageDialogProps) => {
                 className="w-full h-auto flex mb-3 rounded"
               />
               <div className="flex gap-4 absolute bottom-4 right-4">
-                <Button className="w-fit">
+                <Button className="w-fit" onClick={handleDownload}>
                   <DownloadIcon className="w-4 h-4 mr-2" />
                   Download
                 </Button>
-                <Button className="w-fit" variant={"destructive"}>
-                  <TrashIcon className="w-4 h-4"></TrashIcon>
-                </Button>
+                <DeleteImage
+                  imageId={image.id.toString()}
+                  onDelete={onClose}
+                  className="w-fit"
+                  imageName={image.image_name || ""}
+                />
               </div>
             </div>
 
