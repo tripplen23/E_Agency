@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useId } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -15,15 +15,17 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { toast } from "sonner";
+import { getPresignedStorageUrl } from "@/lib/actions/model-actions";
 
 const ACCEPTED_ZIP_FILES = ["application/x-zip-compressed", "application/zip"];
-const MAX_FILE_SIZE = 45 * 1024 * 1024; // 45MB
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
 const formSchema = z.object({
   modelName: z.string({
     required_error: "Model name is required",
   }),
-  gender: z.enum(["man", "woman"]),
+  gender: z.enum(["man", "women"]),
   zipFile: z
     .any()
     .refine((files) => files?.[0] instanceof File, "Please select a valid file")
@@ -34,11 +36,12 @@ const formSchema = z.object({
     )
     .refine(
       (files) => files?.[0]?.size && files?.[0]?.size <= MAX_FILE_SIZE,
-      "File size should be less than 45MB"
+      "File size should be less than 50MB"
     ),
 });
 
 const ModelTrainingForm = () => {
+  const toastId = useId();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -48,9 +51,67 @@ const ModelTrainingForm = () => {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
+  const fileRef = form.register("zipFile");
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    toast.loading("Uploading files...", { id: toastId });
+
+    try {
+      const data = await getPresignedStorageUrl(values.zipFile[0].name);
+      console.log(data);
+      if (data.error) {
+        toast.error(data.error || "Failed to upload files", { id: toastId });
+        return;
+      }
+
+      // Uploading file
+      const urlResponse = await fetch(data.signedUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": values.zipFile[0].type,
+        },
+        body: values.zipFile[0],
+      });
+
+      if (!urlResponse.ok) {
+        throw new Error("Upload Failed!");
+      }
+
+      const res = await urlResponse.json();
+
+      toast.success("Files uploaded successfully!", { id: toastId });
+
+      console.log(res);
+
+      const formData = new FormData();
+      formData.append("fileKey", res.Key);
+      formData.append("modelName", values.modelName);
+      formData.append("gender", values.gender);
+
+      // use the /train handler
+      const response = await fetch("/api/train", {
+        method: "POST",
+        body: formData,
+      });
+
+      const results = await response.json();
+
+      if (!response.ok || results?.error) {
+        throw new Error(
+          results?.error || "Failed to start training the model!"
+        );
+      }
+
+      toast.success(
+        "Model training started successfully! You'll receive a notification once it gets completed!",
+        { id: toastId }
+      );
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to start training!";
+      toast.error(errorMessage, { id: toastId, duration: 5000 });
+    }
+
     console.log(values);
   }
   return (
@@ -94,7 +155,7 @@ const ModelTrainingForm = () => {
                     </FormItem>
                     <FormItem className="flex items-center space-x-3 space-y-0">
                       <FormControl>
-                        <RadioGroupItem value="woman" />
+                        <RadioGroupItem value="women" />
                       </FormControl>
                       <FormLabel className="font-normal">Female</FormLabel>
                     </FormItem>
@@ -108,7 +169,7 @@ const ModelTrainingForm = () => {
           <FormField
             control={form.control}
             name="zipFile"
-            render={({ field }) => (
+            render={() => (
               <FormItem>
                 <FormLabel>
                   Training Data (Zip File) |{" "}
@@ -143,12 +204,7 @@ const ModelTrainingForm = () => {
                   </ul>
                 </div>
                 <FormControl>
-                  <Input
-                    type="file"
-                    accept=".zip"
-                    {...field}
-                    onChange={(e) => field.onChange(e.target.files)}
-                  />
+                  <Input type="file" accept=".zip" {...fileRef} />
                 </FormControl>
                 <FormDescription>
                   Upload a zip file containing your training images (max 45MB).
