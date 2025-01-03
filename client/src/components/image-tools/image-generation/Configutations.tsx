@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
 import useGeneratedStore from "@/store/useGeneratedStore";
+import { Tables } from "@datatypes.types";
 
 export const ImageGenerationFormSchema = z.object({
   model: z.string({
@@ -61,13 +62,18 @@ export const ImageGenerationFormSchema = z.object({
     .max(50, { message: "Number of inference steps must be less than 51" }),
 });
 
-const Configutations = () => {
+interface ConfigutationsProps {
+  userModels: Tables<"models">[];
+  model_id: string;
+}
+
+const Configutations = ({ userModels, model_id }: ConfigutationsProps) => {
   const generateImage = useGeneratedStore((state) => state.generateImage);
 
   const form = useForm<z.infer<typeof ImageGenerationFormSchema>>({
     resolver: zodResolver(ImageGenerationFormSchema),
     defaultValues: {
-      model: "black-forest-labs/flux-dev",
+      model: model_id ? `tripplen23/${model_id}` : "black-forest-labs/flux-dev",
       prompt: "",
       guidance: 3.5,
       num_outputs: 1,
@@ -100,6 +106,7 @@ const Configutations = () => {
 
   async function onSubmit(values: z.infer<typeof ImageGenerationFormSchema>) {
     await generateImage(values);
+    
   }
 
   return (
@@ -140,6 +147,17 @@ const Configutations = () => {
                       <SelectItem value="black-forest-labs/flux-schnell">
                         Flux Schell
                       </SelectItem>
+                      {userModels?.map(
+                        (model) =>
+                          model.training_status === "succeeded" && (
+                            <SelectItem
+                              key={model.model_id}
+                              value={`tripplen23/${model.model_id}:${model.version}`}
+                            >
+                              {model.model_name}
+                            </SelectItem>
+                          )
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
