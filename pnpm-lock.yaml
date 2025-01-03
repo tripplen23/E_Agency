@@ -162,7 +162,7 @@ importers:
         specifier: ^1.0.1
         version: 1.0.1
       resend:
-        specifier: ^4.0.1
+        specifier: 4.0.1
         version: 4.0.1(react-dom@19.0.0-rc-66855b96-20241106)(react@19.0.0-rc-66855b96-20241106)
       sonner:
         specifier: 1.7.0
