@@ -105,8 +105,24 @@ const Configutations = ({ userModels, model_id }: ConfigutationsProps) => {
   }, [form]);
 
   async function onSubmit(values: z.infer<typeof ImageGenerationFormSchema>) {
-    await generateImage(values);
-    
+    const newValues = {
+      ...values,
+      prompt: values.model.startsWith("tripplen23/")
+        ? (() => {
+            const modelId = values.model
+              .replace("tripplen23/", "")
+              .split(":")[0];
+            const selectedModel = userModels.find(
+              (model) => model.model_id === modelId
+            );
+
+            return `Photo of a ${selectedModel?.trigger_word || "ohwx"} ${
+              selectedModel?.gender
+            }, ${values.prompt} `;
+          })()
+        : values.prompt,
+    };
+    await generateImage(newValues);
   }
 
   return (
