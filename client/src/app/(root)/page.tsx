@@ -1,7 +1,11 @@
 import React from "react";
 
-const page = () => {
-  return <div>page</div>;
+const Home = () => {
+  return (
+    <main className="flex flex-col min-h-screen items-center justify-center">
+      Pricing Component
+    </main>
+  );
 };
 
-export default page;
+export default Home;
