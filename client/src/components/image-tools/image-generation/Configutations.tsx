@@ -11,6 +11,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
@@ -28,9 +29,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Info } from "lucide-react";
+import { Info, X } from "lucide-react";
 import useGeneratedStore from "@/store/useGeneratedStore";
 import { Tables } from "@datatypes.types";
+import Image from "next/image";
 
 export const ImageGenerationFormSchema = z.object({
   model: z.string({
@@ -60,6 +62,18 @@ export const ImageGenerationFormSchema = z.object({
     .number()
     .min(1, { message: "Number of inference steps should be at least 1" })
     .max(50, { message: "Number of inference steps must be less than 51" }),
+  promptImage: z
+    .any()
+    .optional()
+    .refine(
+      (file) =>
+        !file || (file instanceof File && file.type.startsWith("image/")),
+      "File must be an image"
+    )
+    .refine(
+      (file) => !file || file.size <= 5 * 1024 * 1024,
+      "Image must be less than 5MB"
+    ),
 });
 
 interface ConfigutationsProps {
@@ -121,6 +135,7 @@ const Configutations = ({ userModels, model_id }: ConfigutationsProps) => {
             }, ${values.prompt} `;
           })()
         : values.prompt,
+      promptImageName: values.promptImage?.name,
     };
     await generateImage(newValues);
   }
@@ -430,6 +445,66 @@ const Configutations = ({ userModels, model_id }: ConfigutationsProps) => {
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="promptImage"
+              render={({ field: { value, onChange, ...field } }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    Prompt Image
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Info className="w-4 h-4" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>
+                          Could be a sketch to make your output to be more
+                          accurate. (optional)
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </FormLabel>
+                  <FormControl>
+                    <div className="flex flex-col gap-4">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          onChange(file);
+                        }}
+                        {...field}
+                      />
+                      {value && (
+                        <div className="relative w-full aspect-square rounded-lg overflow-hidden">
+                          <Image
+                            src={URL.createObjectURL(value)}
+                            alt="Prompt image preview"
+                            fill
+                            className="object-contain"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-2 right-2"
+                            onClick={() => onChange(null)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </FormControl>
+                  <FormDescription>
+                    Maximum file size: 5MB. Supported formats: JPG, PNG, WebP
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <Button type="submit" className="font-medium">
               Generate
             </Button>

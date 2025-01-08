@@ -19,6 +19,36 @@ interface ImageResponse {
   data: any | null;
 }
 
+async function uploadPromptImage(file: File) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Unauthorized");
+
+  const arrayBuffer = await file.arrayBuffer();
+
+  const fileName = `prompt_${randomUUID()}.${file.name.split(".").pop()}`;
+  const filePath = `${user.id}/prompts/${fileName}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("generated_images")
+    .upload(filePath, arrayBuffer, {
+      contentType: file.type,
+      cacheControl: "3600",
+      upsert: false,
+    });
+
+  if (uploadError) throw uploadError;
+
+  const { data } = await supabase.storage
+    .from("generated_images")
+    .createSignedUrl(filePath, 3600);
+
+  return data?.signedUrl;
+}
+
 export async function generateImageAction(
   input: z.infer<typeof ImageGenerationFormSchema>
 ): Promise<ImageResponse> {
@@ -30,10 +60,24 @@ export async function generateImageAction(
     };
   }
 
+  let promptImageUrl = null;
+  if (input.promptImage) {
+    try {
+      promptImageUrl = await uploadPromptImage(input.promptImage);
+    } catch (error: any) {
+      return {
+        error: `Failed to upload prompt image: ${error.message}`,
+        success: false,
+        data: null,
+      };
+    }
+  }
+
   const modelInput = input.model.startsWith("tripplen23/")
     ? {
         model: "dev",
         prompt: input.prompt,
+        image: promptImageUrl,
         lora_scale: 1,
         guidance: input.guidance,
         num_outputs: input.num_outputs,
@@ -46,6 +90,7 @@ export async function generateImageAction(
       }
     : {
         prompt: input.prompt,
+        image: promptImageUrl,
         go_fast: true,
         guidance: input.guidance,
         megapixels: "1",
@@ -58,9 +103,14 @@ export async function generateImageAction(
       };
 
   try {
-    const output = await replicate.run(input.model as `${string}/${string}`, {
-      input: modelInput,
-    });
+    const { promptImage, ...restInput } = input;
+
+    const output = await replicate.run(
+      restInput.model as `${string}/${string}`,
+      {
+        input: modelInput,
+      }
+    );
     console.log("Image output: " + output);
 
     return {
@@ -85,6 +135,7 @@ export async function imgUrlToBlob(url: string) {
 
 type storeImageInput = {
   url: string;
+  promptImageName?: string;
 } & Database["public"]["Tables"]["generated_images"]["Insert"];
 
 export async function storeImages(data: storeImageInput[]) {
@@ -140,6 +191,7 @@ export async function storeImages(data: storeImageInput[]) {
           num_inference_steps: img.num_inference_steps,
           output_format: img.output_format,
           image_name: fileName,
+          prompt_image_name: img.promptImageName,
           width,
           height,
         },

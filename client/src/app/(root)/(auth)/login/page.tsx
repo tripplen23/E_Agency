@@ -1,11 +1,20 @@
-"use client";
 import React from "react";
 import AuthImg from "@/public/Abstract Curves and Colors.jpeg";
 import Image from "next/image";
 import Logo from "@/components/Logo";
 import AuthForm from "@/components/auth/AuthForm";
 
-const AuthenticationPage: React.FC = () => {
+interface SearchParams {
+  state?: string;
+}
+
+const AuthenticationPage = async ({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) => {
+  const { state } = await searchParams;
+
   return (
     <main className="h-screen grid grid-cols-2 relative">
       <div className="relative w-full flex flex-col bg-muted p-10 text-primary-foreground">
@@ -35,7 +44,7 @@ const AuthenticationPage: React.FC = () => {
 
       <div className="relative flex flex-col items-center justify-center p-8 h-full w-full">
         <div className="max-w-xl w-[350px] mx-auto">
-          <AuthForm />
+          <AuthForm state={state ?? "login"} />
         </div>
       </div>
     </main>
