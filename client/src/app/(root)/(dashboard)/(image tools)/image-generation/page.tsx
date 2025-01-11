@@ -18,7 +18,7 @@ const ImageGeneration = async ({
 
   return (
     <section className="container mx-auto flex-1 grid gap-4 grid-cols-3 overflow-hidden">
-      <Configutations userModels={userModels || []} model_id={model_id} />
+      <Configutations userModels={userModels || []} model_id={model_id || ''} />
       <div className="col-span-2 p-4 rounded-xl flex items-center justify-center h-fit">
         <GenerateImages />
       </div>

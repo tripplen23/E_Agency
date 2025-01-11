@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Database } from "@datatypes.types";
 import { imageMeta } from "image-meta";
 import { randomUUID } from "crypto";
+import { getCredits } from "./credit-actions";
 
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
@@ -60,6 +61,15 @@ export async function generateImageAction(
     };
   }
 
+  const { data: credits } = await getCredits();
+  if (!credits?.image_generation_count || credits.image_generation_count <= 0) {
+    return {
+      error: "No credits available",
+      success: false,
+      data: null,
+    };
+  }
+
   let promptImageUrl = null;
   if (input.promptImage) {
     try {
@@ -103,7 +113,7 @@ export async function generateImageAction(
       };
 
   try {
-    const { promptImage, ...restInput } = input;
+    const { ...restInput } = input;
 
     const output = await replicate.run(
       restInput.model as `${string}/${string}`,
