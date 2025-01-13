@@ -1,8 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { ThemeProvider } from "@/components/ThemeProvider";
-//import Sidebar from "@/components/Sidebar";
-//import { Header } from "@/components/Header";
 import localFont from "next/font/local";
 import { Toaster } from "@/components/ui/sonner";
 
